@@ -1,0 +1,23 @@
+---
+
+- name: Test personal cheat sheet
+  hosts: localhost
+  connection: local
+  gather_facts: false
+  vars_prompt:
+    - name: username
+      prompt: What is your username?
+      private: no
+    - name: ansible_become_password
+      prompt: Enter sudo password
+      private: yes
+  vars:
+    ansible_python_interpreter: /usr/bin/python3
+    force_update: false
+    config_path: "{{ playbook_dir }}/mock_assets/conf.yml"
+    dest_path: "/tmp/ans_test/{{ username }}"
+    cheatsheets_personal_path: "{{ playbook_dir }}/mock_assets/personal"
+
+  tasks:
+    - name: todo
+      include_tasks: ../task-cheat.yml

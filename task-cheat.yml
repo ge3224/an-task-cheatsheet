@@ -1,0 +1,111 @@
+---
+
+# Author: Jacob Benison
+# Author URI: https://github.com/ge3224
+# Date: 2025 March 15
+#
+# Ensure cheat sheet config is set up. See
+# https://github.com/cheat/cheat
+
+- name: Assert 'ansible_become_password' is defined
+  ansible.builtin.assert:
+    that:
+      - ansible_become_password is defined 
+      - ansible_become_password != ''
+    fail_msg: "Required 'ansible_become_password' is not defined."
+  tags: always
+
+- name: Assert 'dest_path' is defined
+  ansible.builtin.assert:
+    that: dest_path is defined
+    fail_msg: "Required 'dest_path' is not defined."
+  tags: always
+
+- name: Assert 'config_path' is defined
+  ansible.builtin.assert:
+    that: config_path is defined
+    fail_msg: "Required 'config_path' is not defined."
+  tags: always
+
+- name: Assert cheatsheets_personal_path is defined
+  ansible.builtin.assert:
+    that: cheatsheets_personal_path is defined
+    fail_msg: "Required cheatsheets_personal_path is not defined."
+  tags: always
+
+- name: Get stats on a possible cheat directory
+  ansible.builtin.stat:
+    path: "{{ dest_path }}/cheat"
+  register: cheat_dir
+
+- name: Create a cheat directory if it doesn't exist
+  ansible.builtin.file:
+    path: "{{ dest_path }}/cheat"
+    state: directory
+  when: not cheat_dir.stat.exists
+
+- name: Get stats on a possible 'cheatsheets' directory
+  ansible.builtin.stat:
+    path: "{{ dest_path }}/cheat/cheatsheets"
+  register: cheatsheets_dir
+
+- name: Create a 'cheatsheets' directory if it doesn't exist
+  ansible.builtin.file:
+    path: "{{ dest_path }}/cheat/cheatsheets"
+    state: directory
+  when: not cheatsheets_dir.stat.exists
+
+- name: Update permissions on personal cheatsheets directory if needed
+  become: yes
+  ansible.builtin.file:
+    path: "{{ dest_path }}/cheat/cheatsheets"
+    mode: '0755'
+  when: cheatsheets_dir.stat.exists and cheatsheets_dir.stat.mode != '0755'
+
+- name: Check if a 'community' cheatsheets directory exists
+  ansible.builtin.stat:
+    path: "{{ dest_path }}/cheat/cheatsheets/community/.git"
+  register: community_git_dir
+
+- name: Clone 'community' cheatsheets repository
+  ansible.builtin.git:
+    repo: git@github.com:cheat/cheatsheets.git
+    dest: "{{ dest_path }}/cheat/cheatsheets/community"
+    accept_hostkey: yes
+  when: not community_git_dir.stat.exists
+
+- name: Get stats on cheat config
+  ansible.builtin.stat:
+    path: "{{ dest_path }}/cheat/conf.yml"
+  register: conf_file
+
+- name: Remove any existing cheat config
+  become: yes
+  ansible.builtin.file:
+    path: "{{ dest_path }}/cheat/conf.yml"
+    state: absent
+  when: conf_file.stat.exists
+
+- name: Create a new symlink to config_path 
+  ansible.builtin.file:
+    src: "{{ config_path }}"
+    dest: "{{ dest_path }}/cheat/conf.yml"
+    state: link
+
+- name: Get stats on cheat config
+  ansible.builtin.stat:
+    path: "{{ dest_path }}/cheat/cheatsheets/personal"
+  register: personal_dir
+#
+- name: Remove any existing personal cheatsheats directory
+  become: yes
+  ansible.builtin.file:
+    path: "{{ dest_path }}/cheat/cheatsheets/personal"
+    state: absent
+  when: personal_dir.stat.exists
+
+- name: Create a new symlink to cheatsheets_personal_path
+  ansible.builtin.file:
+    src: "{{ cheatsheets_personal_path }}"
+    dest: "{{ dest_path }}/cheat/cheatsheets/personal"
+    state: link
