@@ -14,9 +14,9 @@
   vars:
     ansible_python_interpreter: /usr/bin/python3
     force_update: false
-    config_path: "{{ playbook_dir }}/mock_assets/conf.yml"
-    dest_path: "/tmp/ans_test/{{ username }}"
-    cheatsheets_personal_path: "{{ playbook_dir }}/mock_assets/personal"
+    cheat_conf: "{{ playbook_dir }}/mock_assets/conf.yml"
+    cheat_dest: "/tmp/ans_test/{{ username }}"
+    cheat_repo: "{{ playbook_dir }}/mock_assets/personal"
 
   tasks:
     - name: todo
