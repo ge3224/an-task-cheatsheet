@@ -1,4 +1,4 @@
-# Cheatsheets Task Module
+# Ansible Task: Configure Cheatsheets
 
 This Ansible task module handles the installation and configuration of the
 [cheat](https://github.com/cheat/cheat) command-line cheatsheet manager.
